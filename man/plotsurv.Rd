@@ -7,6 +7,7 @@
 plotsurv(survfit_obj,
          include_surv = TRUE,
          include_CIFs = NULL,
+         display_event = "all",
          title = "Cumulative incidence and survival",
          subtitle = "",
          x_lab = "Time",
@@ -25,6 +26,8 @@ plotsurv(survfit_obj,
 \item{include_surv}{(optional) a character value for the document title}
 
 \item{include_CIFs}{(optional) a character value for the document subtitle}
+
+\item{display_event}{(optional) a vector of event values to be displayed (defaults to "all"),}
 
 \item{title}{(optional) The plot title, defaults to "Cumulative incidence and survival"}
 

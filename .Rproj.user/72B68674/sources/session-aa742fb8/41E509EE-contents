@@ -8,6 +8,7 @@
 #' @usage plotsurv(survfit_obj,
 #'          include_surv = TRUE,
 #'          include_CIFs = NULL,
+#'          display_event = "all",
 #'          title = "Cumulative incidence and survival",
 #'          subtitle = "",
 #'          x_lab = "Time",
@@ -25,6 +26,7 @@
 #' @param survfit_obj the output of a survift() call
 #' @param include_surv (optional) a character value for the document title
 #' @param include_CIFs (optional) a character value for the document subtitle
+#' @param display_event (optional) a vector of event values to be displayed (defaults to "all"),
 #' @param title (optional) The plot title, defaults to "Cumulative incidence and survival"
 #' @param subtitle (optional) The plot subtitle, defaults to empty string ""
 #' @param x_lab (optional) X-axis label, defaults to "Time"
@@ -53,6 +55,7 @@
 plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
                      include_surv = TRUE, # include the Kaplan-Meier survival curve
                      include_CIFs = NULL, # include the cause-specific cumulative incidence curves (with one outcome type, this is 1 - S(t); otherwise, it is estimated by survfit() using the Aalen-Johansen estimator)
+                     display_event = "all",
                      title = "Cumulative incidence and survival", # Plot title
                      subtitle = "", # Plot subtitle
                      x_lab = "Time", # X-axis label
@@ -64,8 +67,17 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
                      colors = NULL, # Colors
                      linetypes = NULL) # Linetypes
 {
+
+  #print(display_event)
+  #print(survfit_obj$states)
+  if (! all(display_event %in% survfit_obj$states)) {
+    stop("Some values of display_event were not in the event arg of your Surv() call (note: the lowest factor, corresponding to the censoring state, must not be included.)")
+  }
+  if (display_event == "all") {display_event <- survfit_obj$states} else {display_event <- c("(s0)", display_event)}
+
   refactor_survfits <- function(survfit_obj) {
-    event_types <- colnames(survfit_obj$pstate)
+    #event_types <- colnames(survfit_obj$pstate)
+    event_types <- survfit_obj$states
 
     create_dfs <- function(event_type, survfit_obj) {
       df <- data.frame(
@@ -84,7 +96,8 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
   }
 
   dfs <- refactor_survfits(survfit_obj)
-
+  dfs <- dfs[display_event]
+  #return(dfs)
   plot_obj <- ggplot2::ggplot() +
     labs(
       y = y_lab,
