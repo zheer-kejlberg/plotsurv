@@ -4,7 +4,7 @@ Title: What the Package Does (Title Case)
 Version: 0.1.0
 Authors@R: c(
     person(
-      given = c("Zheer","Kejlberg")
+      given = c("Zheer","Kejlberg"),
       family = "Al-Mashhadi",
       email = "contact@zheer.dk",
       role = c("aut", "cre"),
