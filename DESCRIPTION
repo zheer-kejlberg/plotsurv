@@ -1,6 +1,6 @@
 Package: plotsurv
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Create Nice Plots for Survival and CIF Curves
 Version: 0.1.0
 Authors@R: c(
     person(
