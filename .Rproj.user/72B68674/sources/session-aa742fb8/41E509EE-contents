@@ -123,6 +123,10 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
     plot_obj <- add_to_plot(dfs[[event_type]], event_type)
   }
 
+  if (is.null(linetypes)) {
+    linetypes <- rep("solid", length(names(dfs)) * length(unique(dfs[[1]]$strata)))
+  }
+
   if (!(is.null(group_labels))) {
     if (is.null(colors)) {  colors <- scales::hue_pal()(length(group_labels))  }
     plot_obj <- plot_obj +
@@ -133,6 +137,10 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
       scale_fill_manual(
         labels = group_labels,
         values = colors
+      ) +
+      scale_linetype_manual(
+        labels = group_labels,
+        values = linetypes
       )
   } else {
     if (!is.null(colors)) {
@@ -142,20 +150,13 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
         ) +
         scale_fill_manual(
           values = colors
+        ) +
+        scale_linetype_manual(
+          values = linetypes
         )
     }
   }
 
-  if (is.null(linetypes)) {
-    linetypes <- rep("solid", length(names(dfs)) * length(unique(dfs[[1]]$strata)))
-  }
-  if (!is.null(linetypes)) {
-    plot_obj <- plot_obj +
-      scale_linetype_manual(
-        labels = group_labels,
-        values = linetypes
-      )
-  }
 
   return(plot_obj)
 }
