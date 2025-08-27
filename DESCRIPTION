@@ -16,8 +16,6 @@ Description: A package to create nice plots for Kaplan-Meier/Aalen-Johansen mode
 License: GPL (>= 3)
 Encoding: UTF-8
 Imports:
-    dplyr,
-    survival,
     ggplot2
 LazyData: true
 RoxygenNote: 7.3.2
