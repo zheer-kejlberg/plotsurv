@@ -4,7 +4,7 @@
 \alias{plotsurv}
 \title{plotsurv}
 \usage{
-plotsurv(data,
+plotsurv(survfit_obj,
          include_surv = TRUE,
          include_CIFs = NULL,
          title = "Cumulative incidence and survival",
@@ -20,7 +20,7 @@ plotsurv(data,
        )
 }
 \arguments{
-\item{data}{a list of lists containing a section title and DOIs for each section of the reference paper. Each embedded list must have two keys, "title =" and "DOIs =".}
+\item{survfit_obj}{the output of a survift() call}
 
 \item{include_surv}{(optional) a character value for the document title}
 

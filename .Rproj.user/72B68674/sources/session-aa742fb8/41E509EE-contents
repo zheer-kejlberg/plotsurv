@@ -5,7 +5,7 @@
 #' @author Zheer Kejlberg Al-Mashhadi
 #' @description Create nice plots for Kaplan-Meier/Aalen-Johansen models fitted using survival::survfit().
 #' @export
-#' @usage plotsurv(data,
+#' @usage plotsurv(survfit_obj,
 #'          include_surv = TRUE,
 #'          include_CIFs = NULL,
 #'          title = "Cumulative incidence and survival",
@@ -22,7 +22,7 @@
 
 #' @return ggplot object
 
-#' @param data a list of lists containing a section title and DOIs for each section of the reference paper. Each embedded list must have two keys, "title =" and "DOIs =".
+#' @param survfit_obj the output of a survift() call
 #' @param include_surv (optional) a character value for the document title
 #' @param include_CIFs (optional) a character value for the document subtitle
 #' @param title (optional) The plot title, defaults to "Cumulative incidence and survival"
