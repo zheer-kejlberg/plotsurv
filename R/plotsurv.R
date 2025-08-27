@@ -70,10 +70,11 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
 
   #print(display_event)
   #print(survfit_obj$states)
+  if (identical(display_event, "all")) {display_event <- survfit_obj$states} else {display_event <- unique(c("(s0)", display_event))}
   if (! all(display_event %in% survfit_obj$states)) {
     stop("Some values of display_event were not in the event arg of your Surv() call (note: the lowest factor, corresponding to the censoring state, must not be included.)")
   }
-  if (display_event == "all") {display_event <- survfit_obj$states} else {display_event <- c("(s0)", display_event)}
+
 
   refactor_survfits <- function(survfit_obj) {
     #event_types <- colnames(survfit_obj$pstate)
