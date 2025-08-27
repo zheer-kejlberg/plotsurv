@@ -24,8 +24,12 @@
 #' @return ggplot object
 
 #' @param survfit_obj the output of a survift() call
-#' @param include_surv (optional) a character value for the document title
-#' @param include_CIFs (optional) a character value for the document subtitle
+#' @param include_surv (optional) whether to overlay the Kaplan-Meier survival curve
+#@param include_CIFs (optional)
+#' @param conf.int (optional) whether to add confidence bands (defaults to TRUE)
+#' @param ticks (optional) whether to add censoring ticks (defaults to TRUE)
+#' @param ticksize (optional) size of censoring ticks (defaults to 3)
+#' @param tickalpha (optional) colour alpha-level of censoring ticks (defaults to 0.8)
 #' @param display_event (optional) a vector of event values to be displayed (defaults to "all"),
 #' @param title (optional) The plot title, defaults to "Cumulative incidence and survival"
 #' @param subtitle (optional) The plot subtitle, defaults to empty string ""
@@ -53,9 +57,13 @@
 #### plotsurv():
 
 plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
-                     include_surv = TRUE, # include the Kaplan-Meier survival curve
-                     include_CIFs = NULL, # include the cause-specific cumulative incidence curves (with one outcome type, this is 1 - S(t); otherwise, it is estimated by survfit() using the Aalen-Johansen estimator)
-                     display_event = "all",
+                     include_surv = TRUE, # overlay the Kaplan-Meier survival curve
+                     #include_CIFs = NULL, # include the cause-specific cumulative incidence curves (with one outcome type, this is 1 - S(t); otherwise, it is estimated by survfit() using the Aalen-Johansen estimator)
+                     conf.int = TRUE, #
+                     ticks = TRUE,
+                     ticksize = 3,
+                     tickalpha = 0.8,
+                     display_event = "all", #
                      title = "Cumulative incidence and survival", # Plot title
                      subtitle = "", # Plot subtitle
                      x_lab = "Time", # X-axis label
@@ -75,9 +83,9 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
     stop("Some values of display_event were not in the event arg of your Surv() call (note: the lowest factor, corresponding to the censoring state, must not be included.)")
   }
 
+  censoring_times <- survfit_obj$time[survfit_obj$n.censor[,"(s0)"] == 1]
 
   refactor_survfits <- function(survfit_obj) {
-    #event_types <- colnames(survfit_obj$pstate)
     event_types <- survfit_obj$states
 
     create_dfs <- function(event_type, survfit_obj) {
@@ -97,8 +105,9 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
   }
 
   dfs <- refactor_survfits(survfit_obj)
-  dfs <- dfs[display_event]
   #return(dfs)
+  dfs <- dfs[display_event]
+
   plot_obj <- ggplot2::ggplot() +
     labs(
       y = y_lab,
@@ -110,32 +119,7 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
       linetype = line_lab
     )
 
-  add_to_plot <- function(df, event_type) {
-    if (event_type != "(s0)") {
-      plot_obj <- plot_obj +
-        geom_line(
-          data = df,
-          aes(x = time, y = est, color = strata, linetype = strata)
-        ) +
-        geom_ribbon(
-          data = df,
-          aes(x = time, ymin = lower, ymax = upper, fill = strata), alpha = 0.5, color = NA)
-    } else if (include_surv) {
-      plot_obj <- plot_obj +
-        geom_line(
-          data = df,
-          #linetype = "dashed",
-          aes(x = time, y = est, color = strata, linetype = strata)) +
-        geom_ribbon(
-          data = df,
-          aes(x = time, ymin = lower, ymax = upper, fill = strata), inherit.aes = FALSE, alpha = 0.5, color = NA)
-    }
-    return(plot_obj)
-  }
 
-  for (event_type in names(dfs)) {
-    plot_obj <- add_to_plot(dfs[[event_type]], event_type)
-  }
 
   if (is.null(linetypes)) {
     linetypes <- rep("solid", length(names(dfs)) * length(unique(dfs[[1]]$strata)))
@@ -171,6 +155,33 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
     }
   }
 
+  add_to_plot <- function(df, event_type) {
+    if (event_type != "(s0)" | include_surv) {
+      plot_obj <- plot_obj +
+        geom_line(data = df,
+                  aes(x = time, y = est, color = strata, linetype = strata))
+      if (conf.int) {
+        plot_obj <- plot_obj +
+          geom_ribbon(data = df,
+                      aes(x = time, ymin = lower, ymax = upper, fill = strata),
+                      alpha = 0.5, color = NA)
+      }
+      if (ticks) {
+        plot_obj <- plot_obj +
+          geom_point(data = subset(df, time %in% censoring_times),
+                     aes(x = time, y = est, color = strata),
+                     alpha=tickalpha,
+                     shape="|",
+                     size = ticksize)
+      }
+
+    }
+    return(plot_obj)
+  }
+
+  for (event_type in names(dfs)) {
+    plot_obj <- add_to_plot(dfs[[event_type]], event_type)
+  }
 
   return(plot_obj)
 }
