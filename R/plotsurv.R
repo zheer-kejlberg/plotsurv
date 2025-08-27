@@ -50,7 +50,7 @@
 
 #### plotsurv():
 
-plotsurv <- function(data = survfit_obj, # the output of a call to survival::survfit()
+plotsurv <- function(data, # the output of a call to survival::survfit()
                      include_surv = TRUE, # include the Kaplan-Meier survival curve
                      include_CIFs = NULL, # include the cause-specific cumulative incidence curves (with one outcome type, this is 1 - S(t); otherwise, it is estimated by survfit() using the Aalen-Johansen estimator)
                      title = "Cumulative incidence and survival", # Plot title
