@@ -106,7 +106,7 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
         geom_ribbon(
           data = df,
           aes(x = time, ymin = lower, ymax = upper, fill = strata), alpha = 0.5, color = NA)
-    } else if (addsurv) {
+    } else if (include_surv) {
       plot_obj <- plot_obj +
         geom_line(
           data = df,
