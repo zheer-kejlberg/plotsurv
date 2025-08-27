@@ -4,10 +4,11 @@ Title: What the Package Does (Title Case)
 Version: 0.1.0
 Authors@R: c(
     person(
-      "Zheer Kejlberg", "Al-Mashhadi",
+      given = c("Zheer","Kejlberg")
+      family = "Al-Mashhadi",
       email = "contact@zheer.dk",
-      role = c("MD", "Phd", "Postdoc"),
-      dept = "Steno Diabetes Center Aarhus"
+      role = c("aut", "cre"),
+      comment = c(ORCID = "0000-0003-1201-199X", website = "https://zheer.dk")
     )
   )
 Description: A package to create nice plots for Kaplan-Meier/Aalen-Johansen models fitted using survival::survfit().
