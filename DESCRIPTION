@@ -1,0 +1,22 @@
+Package: plotsurv
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.1.0
+Authors@R: c(
+    person(
+      "Zheer Kejlberg", "Al-Mashhadi",
+      email = "contact@zheer.dk",
+      role = c("MD", "Phd", "Postdoc"),
+      dept = "Steno Diabetes Center Aarhus"
+    )
+  )
+Description: A package to create nice plots for Kaplan-Meier/Aalen-Johansen models fitted using survival::survfit().
+    Allows for overlaid curves, including addition of both CIF and survival curves.
+License: GPL (>= 3)
+Encoding: UTF-8
+Imports:
+    dplyr,
+    survival,
+    ggplot2
+LazyData: true
+RoxygenNote: 7.3.2

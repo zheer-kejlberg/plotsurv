@@ -1,0 +1,183 @@
+# Aalen-Johansen + Kaplan-Meier plot
+
+# SIMULATE DATA
+n <- 10000
+
+group = ifelse(rbinom(n, 1, 0.5) == 1, "Treated", "Untreated")
+
+
+lambda1 <- 0.005 + (group == "Treated") * 0.001   # hazard for cause 1
+lambda2 <- 0.002 + (group == "Treated") * 0.001  # hazard for cause 2
+
+t1 <- rexp(n, rate = lambda1)
+t2 <- rexp(n, rate = lambda2)
+censortime <- runif(n, min = 100, max = 365)
+event_time <- pmin(t1, t2, censortime)
+event_type <- ifelse(t1 < t2 & t1 < censortime, 1, 
+                     ifelse(t2 < t1 & t2 < censortime, 2, 0))
+
+tte.table <- tibble(
+  group = group,
+  time2 = event_time,
+  eventtype = event_type
+)
+
+
+### CREATE FUNCTION TO PLOT ALL CURVES
+# install.packages("scales")
+plot_CIFs <- function(survfit_obj, 
+                      addsurv = TRUE,
+                      title = "Cumulative incidence and survival",
+                      subtitle = "",
+                      x_lab = "Time",
+                      y_lab = "Cumulative probability of event",
+                      color_lab = "Group and event type",
+                      fill_lab = "Group and event type",
+                      line_lab = "Group and event type",
+                      group_labels = NULL,
+                      colors = NULL,
+                      linetypes = NULL) {
+  refactor_survfits <- function(survfit_obj) {
+    event_types <- colnames(survfit_obj$pstate)
+    
+    create_dfs <- function(event_type, survfit_obj) {
+      df <- data.frame(
+        time = survfit_obj$time, 
+        est = survfit_obj$pstate[,event_type],
+        upper = survfit_obj$upper[,event_type],
+        lower = survfit_obj$lower[,event_type],
+        strata = paste0(rep(names(survfit_obj$strata), survfit_obj$strata), ", event = ", event_type)
+      )
+    }
+    
+    df_list <- lapply(event_types, create_dfs, survfit_obj)
+    names(df_list) <- event_types
+    
+    return(df_list)
+  }
+  
+  dfs <- refactor_survfits(survfit_obj)
+  
+  plot_obj <- ggplot2::ggplot() + 
+    labs(
+      y = y_lab,
+      x = x_lab,
+      title = title,
+      subtitle = subtitle,
+      color = color_lab,
+      fill = fill_lab,
+      linetype = line_lab
+    )
+  
+  add_to_plot <- function(df, event_type) {
+    if (event_type != "(s0)") {
+      plot_obj <- plot_obj +
+        geom_line(
+          data = df, 
+          aes(x = time, y = est, color = strata, linetype = strata) 
+        ) +
+        geom_ribbon(
+          data = df,
+          aes(x = time, ymin = lower, ymax = upper, fill = strata), alpha = 0.5, color = NA)
+    } else if (addsurv) {
+      plot_obj <- plot_obj +
+        geom_line(
+          data = df, 
+          #linetype = "dashed", 
+          aes(x = time, y = est, color = strata, linetype = strata)) +
+        geom_ribbon(
+          data = df, 
+          aes(x = time, ymin = lower, ymax = upper, fill = strata), inherit.aes = FALSE, alpha = 0.5, color = NA)
+    }
+    return(plot_obj)
+  }
+  
+  for (event_type in names(dfs)) {
+    plot_obj <- add_to_plot(dfs[[event_type]], event_type)
+  }
+  
+  if (!(is.null(group_labels))) {
+    if (is.null(colors)) {  colors <- scales::hue_pal()(length(group_labels))  }
+    plot_obj <- plot_obj + 
+      scale_color_manual(
+        labels = group_labels,
+        values = colors
+      ) + 
+      scale_fill_manual(
+        labels = group_labels,
+        values = colors
+      )
+  } else {
+    if (!is.null(colors)) {
+      plot_obj <- plot_obj + 
+        scale_color_manual(
+          values = colors
+        ) +
+        scale_fill_manual(
+          values = colors
+        )
+    }
+  }
+  
+  if (is.null(linetypes)) {
+    linetypes <- rep("solid", length(names(dfs)) * length(unique(dfs[[1]]$strata)))
+  }
+  if (!is.null(linetypes)) {
+    plot_obj <- plot_obj +
+      scale_linetype_manual(
+        labels = group_labels,
+        values = linetypes
+      )
+  }
+  
+  return(plot_obj)
+}
+
+### ESTIMATE THE CIFS / SURVIVAL
+#install.packages(survival)
+AJ_fit <- survfit(Surv(time2, factor(eventtype)) ~ group, 
+                  data = tte.table)
+
+### CALL PLOTTING FUNCTION WITH VARIOUS ARGUMENTS
+plot_CIFs(AJ_fit, addsurv = T)
+
+plot_CIFs(AJ_fit, addsurv = F, subtitle = "Subtitle",
+          group_labels = c("Treated, survival",
+                           "Treated, event 1",
+                           "Treated, event 2",
+                           "Untreated, survival"))
+ 
+
+plot_CIFs(AJ_fit, addsurv = T,
+          group_labels = c("Treated, survival",
+                     "Treated, event 1",
+                     "Treated, event 2",
+                     "Untreated, survival",
+                     "Untreated, event 1",
+                     "Untreated, event 2"),
+          colors = c("#3A488A", 
+                     "#E6AFA7", 
+                     "#E5AD4F", 
+                     "#8785B2", 
+                     "#6D8325", 
+                     "#BD5630")
+)
+
+plot_CIFs(AJ_fit,
+          group_labels = c("Treated, survival",
+                           "Treated, event 1",
+                           "Treated, event 2",
+                           "Untreated, survival",
+                           "Untreated, event 1",
+                           "Untreated, event 2"),
+          colors = c("#3A488A", 
+                     "#6D8325", 
+                     "#BD5630", 
+                     "#8785B2", 
+                     "#6D8325", 
+                     "#BD5630"),
+          linetypes = c("dashed",
+            "solid","solid",
+            "dashed",
+            "dotted","dotted")
+)
