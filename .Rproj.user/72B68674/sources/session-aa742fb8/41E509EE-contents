@@ -8,6 +8,13 @@
 #' @usage plotsurv(survfit_obj,
 #'          include_surv = TRUE,
 #'          include_CIFs = NULL,
+#'          conf.int = TRUE,
+#'          risk.table = FALSE,
+#'          strata.labels = NULL,
+#'          table.breakpoints = 5,
+#'          ticks = TRUE,
+#'          ticksize = 3,
+#'          tickalpha = 0.8,
 #'          display_event = "all",
 #'          title = "Cumulative incidence and survival",
 #'          subtitle = "",
@@ -51,6 +58,8 @@
 #'   plotsurv(
 #'     data = fit_obj,
 #'     include_surv = FALSE,
+#'     conf.int = FALSE,
+#'     risk.table = T,
 #'     title = "Cumulative incidence of metastatic breast cancer recurrence",
 #'     subtitle = "Between 2015 and 2023",
 #'     colors = c("#3A488A","#BD5630")

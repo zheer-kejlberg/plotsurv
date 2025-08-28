@@ -7,6 +7,13 @@
 plotsurv(survfit_obj,
          include_surv = TRUE,
          include_CIFs = NULL,
+         conf.int = TRUE,
+         risk.table = FALSE,
+         strata.labels = NULL,
+         table.breakpoints = 5,
+         ticks = TRUE,
+         ticksize = 3,
+         tickalpha = 0.8,
          display_event = "all",
          title = "Cumulative incidence and survival",
          subtitle = "",
@@ -23,9 +30,19 @@ plotsurv(survfit_obj,
 \arguments{
 \item{survfit_obj}{the output of a survift() call}
 
-\item{include_surv}{(optional) a character value for the document title}
+\item{include_surv}{(optional) whether to overlay the Kaplan-Meier survival curve}
 
-\item{include_CIFs}{(optional) a character value for the document subtitle}
+\item{conf.int}{(optional) whether to add confidence bands (defaults to TRUE)}
+
+\item{risk.table}{(optional) whether to add a table of at-risk population size (defaults to FALSE)}
+
+\item{table.breakpoints}{(optional) number of time-points to display risk set in risk table (defaults to 5)}
+
+\item{ticks}{(optional) whether to add censoring ticks (defaults to TRUE)}
+
+\item{ticksize}{(optional) size of censoring ticks (defaults to 3)}
+
+\item{tickalpha}{(optional) colour alpha-level of censoring ticks (defaults to 0.8)}
 
 \item{display_event}{(optional) a vector of event values to be displayed (defaults to "all"),}
 
@@ -48,6 +65,8 @@ plotsurv(survfit_obj,
 \item{colors}{(optional) Colors for each subgroup, must be of same length as no. of groups}
 
 \item{linetypes}{(optional) Linetypes for each subgroup, must be of same length as no. of groups}
+
+\item{strata.labels}{(optional) change the labels of the strata in the risk table, takes a vector of the same length as number of strata}
 }
 \value{
 ggplot object
@@ -60,6 +79,8 @@ Create nice plots for Kaplan-Meier/Aalen-Johansen models fitted using survival::
   plotsurv(
     data = fit_obj,
     include_surv = FALSE,
+    conf.int = FALSE,
+    risk.table = T,
     title = "Cumulative incidence of metastatic breast cancer recurrence",
     subtitle = "Between 2015 and 2023",
     colors = c("#3A488A","#BD5630")
