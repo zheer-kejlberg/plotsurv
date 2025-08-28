@@ -16,6 +16,9 @@ Description: A package to create nice plots for Kaplan-Meier/Aalen-Johansen mode
 License: GPL (>= 3)
 Encoding: UTF-8
 Imports:
-    ggplot2
+    ggplot2,
+    patchwork,
+    dplyr,
+    tidyr
 LazyData: true
 RoxygenNote: 7.3.2

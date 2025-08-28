@@ -1,2 +1,5 @@
 exportPattern("^[[:alpha:]]+")
 import(ggplot2)
+import(patchwork)
+import(dplyr)
+import(tidyr)

@@ -27,6 +27,9 @@
 #' @param include_surv (optional) whether to overlay the Kaplan-Meier survival curve
 #@param include_CIFs (optional)
 #' @param conf.int (optional) whether to add confidence bands (defaults to TRUE)
+#' @param risk.table (optional) whether to add a table of at-risk population size (defaults to FALSE)
+#' @param strata.labels (optional) change the labels of the strata in the risk table, takes a vector of the same length as number of strata
+#' @param table.breakpoints (optional) number of time-points to display risk set in risk table (defaults to 5)
 #' @param ticks (optional) whether to add censoring ticks (defaults to TRUE)
 #' @param ticksize (optional) size of censoring ticks (defaults to 3)
 #' @param tickalpha (optional) colour alpha-level of censoring ticks (defaults to 0.8)
@@ -60,6 +63,9 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
                      include_surv = TRUE, # overlay the Kaplan-Meier survival curve
                      #include_CIFs = NULL, # include the cause-specific cumulative incidence curves (with one outcome type, this is 1 - S(t); otherwise, it is estimated by survfit() using the Aalen-Johansen estimator)
                      conf.int = TRUE, #
+                     risk.table = FALSE,
+                     strata_labels = NULL,
+                     table.breakpoints = 5,
                      ticks = TRUE,
                      ticksize = 3,
                      tickalpha = 0.8,
@@ -104,8 +110,11 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
     return(df_list)
   }
 
+  if (!is.null(strata_labels)) {
+    names(survfit_obj$strata) <- strata_labels
+  }
+
   dfs <- refactor_survfits(survfit_obj)
-  #return(dfs)
   dfs <- dfs[display_event]
 
   plot_obj <- ggplot2::ggplot() +
@@ -118,8 +127,6 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
       fill = fill_lab,
       linetype = line_lab
     )
-
-
 
   if (is.null(linetypes)) {
     linetypes <- rep("solid", length(names(dfs)) * length(unique(dfs[[1]]$strata)))
@@ -183,5 +190,52 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
     plot_obj <- add_to_plot(dfs[[event_type]], event_type)
   }
 
+  if (risk.table) {
+    n.risk <- data.frame(
+      label = survfit_obj$n.risk[,"(s0)"],
+      time = survfit_obj$time,
+      stratum = rep(names(survfit_obj$strata), survfit_obj$strata)
+    )
+    for (stratum in unique(n.risk$stratum)) {
+      row <- data.frame(
+        label = max(n.risk[n.risk$stratum == stratum,]$label),
+        time = 0,
+        stratum = stratum
+      )
+      n.risk <- rbind(n.risk, row)
+    }
+
+    time_points <- (seq(min(n.risk$time), max(n.risk$time), length.out=table.breakpoints))
+
+    n.risk_show <- n.risk %>%
+      group_by(stratum) %>%
+      arrange(time) %>%
+      summarise(time = time_points,
+                label = label[findInterval(time_points, time)],
+                .groups = "drop")
+
+    n.risk_show$stratum <- factor(n.risk_show$stratum,
+                                  levels = rev(c(names(survfit_obj$strata))))
+
+
+    p_tbl <- ggplot(n.risk_show, aes(x = time, y = stratum, label = label, color = "black")) +
+      geom_text(size = 3, color = "black") +
+      geom_vline(xintercept = unique(time_points),
+                 color = "grey80", linewidth = 0.3) +
+      #xlim(c(min(n.risk$time), max(n.risk$time))) +
+      scale_x_continuous(breaks = round(time_points)) +
+      # vertical guides
+      #geom_vline(xintercept = unique(n.risk$time), color = "grey80", linewidth = 0.3) +
+      theme(
+        legend.position = "none",
+        axis.text.y = element_text(size = 10, hjust = 1), # show strata labels
+        plot.margin = margin(t = 0)
+      ) +
+      labs(x = NULL, y = "Number at risk")
+
+
+    plot_obj <- plot_obj / p_tbl + plot_layout(heights = c(3,1))
+  }
   return(plot_obj)
+
 }
