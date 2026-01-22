@@ -11,7 +11,7 @@
 #'          conf.int = TRUE,
 #'          risk.table = FALSE,
 #'          strata.labels = NULL,
-#'          table.breakpoints = 5,
+#'          x.breaks = 5,
 #'          ticks = TRUE,
 #'          ticksize = 3,
 #'          tickalpha = 0.8,
@@ -32,11 +32,11 @@
 
 #' @param survfit_obj the output of a survift() call
 #' @param include_surv (optional) whether to overlay the Kaplan-Meier survival curve
-#@param include_CIFs (optional)
+#  @param include_CIFs (optional)
 #' @param conf.int (optional) whether to add confidence bands (defaults to TRUE)
 #' @param risk.table (optional) whether to add a table of at-risk population size (defaults to FALSE)
 #' @param strata.labels (optional) change the labels of the strata in the risk table, takes a vector of the same length as number of strata
-#' @param table.breakpoints (optional) number of time-points to display risk set in risk table (defaults to 5)
+#' @param x.breaks (optional) number of time-points to inset ticks in plot and risk set in risk table (defaults to 5)
 #' @param ticks (optional) whether to add censoring ticks (defaults to TRUE)
 #' @param ticksize (optional) size of censoring ticks (defaults to 3)
 #' @param tickalpha (optional) colour alpha-level of censoring ticks (defaults to 0.8)
@@ -51,7 +51,6 @@
 #' @param group_labels (optional) Labels for each subgroup (defaults to automated combination of RHS group and LHS event type), must be of same length as no. of groups
 #' @param colors (optional) Colors for each subgroup, must be of same length as no. of groups
 #' @param linetypes (optional) Linetypes for each subgroup, must be of same length as no. of groups
-#'
 #'
 #' @examples
 #'   \dontrun{
@@ -74,7 +73,7 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
                      conf.int = TRUE, #
                      risk.table = FALSE,
                      strata_labels = NULL,
-                     table.breakpoints = 5,
+                     x.breaks = 5,
                      ticks = TRUE,
                      ticksize = 3,
                      tickalpha = 0.8,
@@ -90,6 +89,9 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
                      colors = NULL, # Colors
                      linetypes = NULL) # Linetypes
 {
+
+
+  time_points <- (seq(0, max(survfit_obj$time), length.out=x.breaks))
 
   #print(display_event)
   #print(survfit_obj$states)
@@ -135,7 +137,8 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
       color = color_lab,
       fill = fill_lab,
       linetype = line_lab
-    )
+    ) +
+    scale_x_continuous(breaks = round(time_points), limits = c(min(time_points), max(time_points)))
 
   if (is.null(linetypes)) {
     linetypes <- rep("solid", length(names(dfs)) * length(unique(dfs[[1]]$strata)))
@@ -200,11 +203,17 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
   }
 
   if (risk.table) {
+    if ("strata" %in% names(survfit_obj)) {
+      stratum = rep(names(survfit_obj$strata), survfit_obj$strata)
+    } else {
+      stratum = rep("", length(survfit_obj$time))
+    }
     n.risk <- data.frame(
       label = survfit_obj$n.risk[,"(s0)"],
       time = survfit_obj$time,
-      stratum = rep(names(survfit_obj$strata), survfit_obj$strata)
+      stratum = stratum
     )
+    print(n.risk)
     for (stratum in unique(n.risk$stratum)) {
       row <- data.frame(
         label = max(n.risk[n.risk$stratum == stratum,]$label),
@@ -213,19 +222,21 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
       )
       n.risk <- rbind(n.risk, row)
     }
+    print(n.risk)
 
-    time_points <- (seq(min(n.risk$time), max(n.risk$time), length.out=table.breakpoints))
+    #time_points <- (seq(min(n.risk$time), max(n.risk$time), length.out=x.breaks))
 
     n.risk_show <- n.risk %>%
       group_by(stratum) %>%
       arrange(time) %>%
-      summarise(time = time_points,
+      reframe(time = time_points,
                 label = label[findInterval(time_points, time)],
                 .groups = "drop")
 
-    n.risk_show$stratum <- factor(n.risk_show$stratum,
-                                  levels = rev(c(names(survfit_obj$strata))))
-
+    if ("strata" %in% names(survfit_obj)) {
+      n.risk_show$stratum <- factor(n.risk_show$stratum,
+                                    levels = rev(c(names(survfit_obj$strata))))
+    }
 
     p_tbl <- ggplot(n.risk_show, aes(x = time, y = stratum, label = label, color = "black")) +
       geom_text(size = 3, color = "black") +
