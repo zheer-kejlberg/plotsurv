@@ -90,11 +90,7 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
                      linetypes = NULL) # Linetypes
 {
 
-
   time_points <- (seq(0, max(survfit_obj$time), length.out=x.breaks))
-
-  #print(display_event)
-  #print(survfit_obj$states)
   if (identical(display_event, "all")) {display_event <- survfit_obj$states} else {display_event <- unique(c("(s0)", display_event))}
   if (! all(display_event %in% survfit_obj$states)) {
     stop("Some values of display_event were not in the event arg of your Surv() call (note: the lowest factor, corresponding to the censoring state, must not be included.)")
@@ -213,7 +209,7 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
       time = survfit_obj$time,
       stratum = stratum
     )
-    print(n.risk)
+    #print(n.risk)
     for (stratum in unique(n.risk$stratum)) {
       row <- data.frame(
         label = max(n.risk[n.risk$stratum == stratum,]$label),
@@ -222,16 +218,12 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
       )
       n.risk <- rbind(n.risk, row)
     }
-    print(n.risk)
-
-    #time_points <- (seq(min(n.risk$time), max(n.risk$time), length.out=x.breaks))
-
     n.risk_show <- n.risk %>%
       group_by(stratum) %>%
       arrange(time) %>%
-      reframe(time = time_points,
-                label = label[findInterval(time_points, time)],
-                .groups = "drop")
+      reframe(label = label[findInterval(time_points, time)],
+              time = time_points
+                )
 
     if ("strata" %in% names(survfit_obj)) {
       n.risk_show$stratum <- factor(n.risk_show$stratum,
