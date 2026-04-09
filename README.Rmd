@@ -1,53 +1,36 @@
-plotsurv
-================
-Zheer Kejlberg Al-Mashhadi
+---
+title: "plotsurv"
+author: "Zheer Kejlberg Al-Mashhadi"
+output:
+  github_document:
+    toc: true
+    toc_depth: 3
+---
 
-- [plotsurv](#plotsurv)
-  - [Installation](#installation)
-  - [Background](#background)
-    - [Survival analysis in a nutshell](#survival-analysis-in-a-nutshell)
-    - [Competing risks](#competing-risks)
-  - [Quick start](#quick-start)
-    - [Set up example data](#set-up-example-data)
-  - [Examples](#examples)
-    - [1 · Minimal plot (competing risks, default
-      settings)](#1--minimal-plot-competing-risks-default-settings)
-    - [2 · CIF curves only (no survival
-      overlay)](#2--cif-curves-only-no-survival-overlay)
-    - [3 · Adding confidence bands](#3--adding-confidence-bands)
-    - [4 · Adding a risk table](#4--adding-a-risk-table)
-    - [5 · Displaying only one event
-      type](#5--displaying-only-one-event-type)
-    - [6 · Customising colors, labels, and
-      titles](#6--customising-colors-labels-and-titles)
-    - [7 · Customising censoring ticks](#7--customising-censoring-ticks)
-    - [8 · Renaming strata labels](#8--renaming-strata-labels)
-    - [9 · Comprehensive example](#9--comprehensive-example)
-  - [Parameter reference](#parameter-reference)
-  - [Notes on `display_event`](#notes-on-display_event)
-  - [Dependencies](#dependencies)
-  - [License](#license)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "90%",
+  dpi = 150
+)
+set.seed(42)
+```
 
 # plotsurv
 
-> **Create publication-ready survival and cumulative incidence plots in
-> R**
+> **Create publication-ready survival and cumulative incidence plots in R**
 
-`plotsurv` is an R package that wraps the powerful
-`survival::survfit()` model object and produces polished `ggplot2`-based
-plots of Kaplan-Meier survival curves and Aalen-Johansen cumulative
-incidence functions (CIFs). It is especially suited for competing-risk
-analyses, where multiple event types can be overlaid on the same plot
-with optional confidence bands, censoring tick marks, and an at-risk
-table.
+`plotsurv` is an R package that wraps the powerful `survival::survfit()` model object and produces polished `ggplot2`-based plots of Kaplan-Meier survival curves and Aalen-Johansen cumulative incidence functions (CIFs). It is especially suited for competing-risk analyses, where multiple event types can be overlaid on the same plot with optional confidence bands, censoring tick marks, and an at-risk table.
 
 <br>
 
-------------------------------------------------------------------------
+---
 
 ## Installation
 
-``` r
+```{r install, eval=FALSE}
 # Install from GitHub (requires devtools)
 install.packages("devtools")
 devtools::install_github("zheer-kejlberg/plotsurv")
@@ -56,42 +39,29 @@ library(plotsurv)
 
 <br>
 
-------------------------------------------------------------------------
+---
 
 ## Background
 
 ### Survival analysis in a nutshell
 
-Time-to-event (survival) analyses estimate the probability that a
-subject has not yet experienced an event of interest up to a given time
-*t*. The classic **Kaplan-Meier (KM) estimator** produces the *survival
-function* S(t) = P(T \> t). Its complement, F(t) = 1 − S(t), is the
-*cumulative incidence* of the event.
+Time-to-event (survival) analyses estimate the probability that a subject has not yet experienced an event of interest up to a given time *t*. The classic **Kaplan-Meier (KM) estimator** produces the *survival function* S(t) = P(T > t). Its complement, F(t) = 1 − S(t), is the *cumulative incidence* of the event.
 
 ### Competing risks
 
-When subjects can experience more than one type of event (e.g., death
-from cancer *vs.* death from cardiovascular disease), simply applying
-the KM estimator to each event separately overstates the cumulative
-incidence because it treats other events as independent censoring. The
-**Aalen-Johansen estimator** correctly accounts for the competing nature
-of the events and produces **cause-specific Cumulative Incidence
-Functions (CIFs)** that sum to a value ≤ 1.
+When subjects can experience more than one type of event (e.g., death from cancer *vs.* death from cardiovascular disease), simply applying the KM estimator to each event separately overstates the cumulative incidence because it treats other events as independent censoring. The **Aalen-Johansen estimator** correctly accounts for the competing nature of the events and produces **cause-specific Cumulative Incidence Functions (CIFs)** that sum to a value ≤ 1.
 
-`survival::survfit()` automatically uses the Aalen-Johansen estimator
-when the event indicator is supplied as a `factor()` with more than two
-levels (one censoring state + ≥2 event states). `plotsurv` visualises
-the resulting `survfit` object.
+`survival::survfit()` automatically uses the Aalen-Johansen estimator when the event indicator is supplied as a `factor()` with more than two levels (one censoring state + ≥2 event states). `plotsurv` visualises the resulting `survfit` object.
 
 <br>
 
-------------------------------------------------------------------------
+---
 
 ## Quick start
 
 ### Set up example data
 
-``` r
+```{r data_setup, eval=FALSE}
 library(survival)
 library(plotsurv)
 
@@ -115,54 +85,48 @@ tte_data$status <- with(tte_data, factor(
 ))
 ```
 
-``` r
+```{r survfit, eval=FALSE}
 # Fit the Aalen-Johansen model (competing risks)
 fit <- survfit(Surv(time, status) ~ group, data = tte_data)
 ```
 
 <br>
 
-------------------------------------------------------------------------
+---
 
 ## Examples
 
 ### 1 · Minimal plot (competing risks, default settings)
 
-By default `plotsurv()` shows **all CIF curves** for every combination
-of strata × event type, overlaid on the same panel. The KM survival
-curve is also shown (`include_surv = TRUE`).
+By default `plotsurv()` shows **all CIF curves** for every combination of strata × event type, overlaid on the same panel. The KM survival curve is also shown (`include_surv = TRUE`).
 
-``` r
+```{r ex1, eval=FALSE}
 plotsurv(fit)
 ```
 
-> *Produces a plot with CIF curves for "Event 1" and "Event 2" plus the
-> overall KM survival curve for each of the two groups — six lines in
-> total.*
+> *Produces a plot with CIF curves for "Event 1" and "Event 2" plus the overall KM survival curve for each of the two groups — six lines in total.*
 
 <br>
 
-------------------------------------------------------------------------
+---
 
 ### 2 · CIF curves only (no survival overlay)
 
-Set `include_surv = FALSE` to hide the survival curve and show only the
-cause-specific CIFs.
+Set `include_surv = FALSE` to hide the survival curve and show only the cause-specific CIFs.
 
-``` r
+```{r ex2, eval=FALSE}
 plotsurv(fit, include_surv = FALSE)
 ```
 
 <br>
 
-------------------------------------------------------------------------
+---
 
 ### 3 · Adding confidence bands
 
-Confidence bands are shown by default (`conf.int = TRUE`). Set it to
-`FALSE` to remove them.
+Confidence bands are shown by default (`conf.int = TRUE`). Set it to `FALSE` to remove them.
 
-``` r
+```{r ex3, eval=FALSE}
 # With confidence bands (default)
 plotsurv(fit, include_surv = FALSE, conf.int = TRUE)
 
@@ -172,15 +136,13 @@ plotsurv(fit, include_surv = FALSE, conf.int = FALSE)
 
 <br>
 
-------------------------------------------------------------------------
+---
 
 ### 4 · Adding a risk table
 
-Set `risk.table = TRUE` to attach a numbers-at-risk table below the
-plot. The table shows the at-risk count at each of the `x.breaks`
-time-points.
+Set `risk.table = TRUE` to attach a numbers-at-risk table below the plot. The table shows the at-risk count at each of the `x.breaks` time-points.
 
-``` r
+```{r ex4, eval=FALSE}
 plotsurv(
   fit,
   include_surv = FALSE,
@@ -189,20 +151,17 @@ plotsurv(
 )
 ```
 
-> *The risk table is automatically aligned with the x-axis of the main
-> plot.*
+> *The risk table is automatically aligned with the x-axis of the main plot.*
 
 <br>
 
-------------------------------------------------------------------------
+---
 
 ### 5 · Displaying only one event type
 
-Use `display_event` to restrict which event types are drawn. Pass a
-character vector containing the desired event-type label(s) as they
-appear in the `factor()` supplied to `Surv()`.
+Use `display_event` to restrict which event types are drawn. Pass a character vector containing the desired event-type label(s) as they appear in the `factor()` supplied to `Surv()`.
 
-``` r
+```{r ex5, eval=FALSE}
 # Show Event 1 only
 plotsurv(
   fit,
@@ -220,13 +179,13 @@ plotsurv(
 
 <br>
 
-------------------------------------------------------------------------
+---
 
 ### 6 · Customising colors, labels, and titles
 
 #### 6a · Custom title, subtitle, and axis labels
 
-``` r
+```{r ex6a, eval=FALSE}
 plotsurv(
   fit,
   include_surv = FALSE,
@@ -240,11 +199,9 @@ plotsurv(
 
 #### 6b · Custom legend labels
 
-The `group_labels` argument renames the legend entries. Labels must be
-supplied in the order: group 1 × event 1, group 1 × event 2, …, group k
-× event m.
+The `group_labels` argument renames the legend entries. Labels must be supplied in the order: group 1 × event 1, group 1 × event 2, …, group k × event m.
 
-``` r
+```{r ex6b, eval=FALSE}
 plotsurv(
   fit,
   include_surv  = FALSE,
@@ -259,16 +216,13 @@ plotsurv(
 )
 ```
 
-> **Tip:** When `color_lab`, `fill_lab`, and `line_lab` are all set to
-> the same string, ggplot2 merges them into a single combined legend.
+> **Tip:** When `color_lab`, `fill_lab`, and `line_lab` are all set to the same string, ggplot2 merges them into a single combined legend.
 
 #### 6c · Custom colors
 
-Pass a vector of hex color codes (or named R colors) to `colors`. Its
-length must equal the number of unique strata × event-type combinations
-being displayed.
+Pass a vector of hex color codes (or named R colors) to `colors`. Its length must equal the number of unique strata × event-type combinations being displayed.
 
-``` r
+```{r ex6c, eval=FALSE}
 plotsurv(
   fit,
   include_surv  = FALSE,
@@ -283,11 +237,9 @@ plotsurv(
 
 #### 6d · Custom line types
 
-Use `linetypes` to distinguish groups by line style (e.g., solid,
-dashed). Accepts any line-type accepted by
-`ggplot2::scale_linetype_manual()`.
+Use `linetypes` to distinguish groups by line style (e.g., solid, dashed). Accepts any line-type accepted by `ggplot2::scale_linetype_manual()`.
 
-``` r
+```{r ex6d, eval=FALSE}
 plotsurv(
   fit,
   include_surv  = FALSE,
@@ -299,14 +251,13 @@ plotsurv(
 
 <br>
 
-------------------------------------------------------------------------
+---
 
 ### 7 · Customising censoring ticks
 
-Censoring tick marks are enabled by default (`ticks = TRUE`). You can
-control their size and transparency:
+Censoring tick marks are enabled by default (`ticks = TRUE`). You can control their size and transparency:
 
-``` r
+```{r ex7, eval=FALSE}
 plotsurv(
   fit,
   include_surv = FALSE,
@@ -318,15 +269,13 @@ plotsurv(
 
 <br>
 
-------------------------------------------------------------------------
+---
 
 ### 8 · Renaming strata labels
 
-By default, strata labels are taken directly from the `survfit` object
-(e.g., `group=Control`, `group=Treated`). Use `strata_labels` to
-override them:
+By default, strata labels are taken directly from the `survfit` object (e.g., `group=Control`, `group=Treated`). Use `strata_labels` to override them:
 
-``` r
+```{r ex8, eval=FALSE}
 plotsurv(
   fit,
   include_surv  = FALSE,
@@ -336,13 +285,13 @@ plotsurv(
 
 <br>
 
-------------------------------------------------------------------------
+---
 
 ### 9 · Comprehensive example
 
 Putting it all together:
 
-``` r
+```{r ex9, eval=FALSE}
 plotsurv(
   fit,
   include_surv  = FALSE,
@@ -370,7 +319,7 @@ plotsurv(
 
 <br>
 
-------------------------------------------------------------------------
+---
 
 ## Parameter reference
 
@@ -401,23 +350,17 @@ plotsurv(
 
 <br>
 
-------------------------------------------------------------------------
+---
 
 ## Notes on `display_event`
 
-- The *censoring state* (the lowest-numbered factor level in
-  `factor(eventtype)`) is stored internally by `survfit` as `"(s0)"`.
-  It should **not** be passed to `display_event`.
-- By default (`display_event = "all"`), the function shows **all** event
-  states including `"(s0)"` (the survival curve), unless
-  `include_surv = FALSE`.
-- Passing a character vector to `display_event` implicitly also includes
-  `"(s0)"` internally, but only the stated event types are drawn
-  (control `include_surv` separately to toggle the survival overlay).
+- The *censoring state* (the lowest-numbered factor level in `factor(eventtype)`) is stored internally by `survfit` as `"(s0)"`. It should **not** be passed to `display_event`.
+- By default (`display_event = "all"`), the function shows **all** event states including `"(s0)"` (the survival curve), unless `include_surv = FALSE`.
+- Passing a character vector to `display_event` implicitly also includes `"(s0)"` internally, but only the stated event types are drawn (control `include_surv` separately to toggle the survival overlay).
 
 <br>
 
-------------------------------------------------------------------------
+---
 
 ## Dependencies
 
@@ -432,7 +375,7 @@ plotsurv(
 
 <br>
 
-------------------------------------------------------------------------
+---
 
 ## License
 
@@ -440,7 +383,6 @@ GPL (≥ 3) — see `LICENSE.md`.
 
 <br>
 
-------------------------------------------------------------------------
+---
 
-*Package developed by [Zheer Kejlberg
-Al-Mashhadi](https://zheer.dk).*
+*Package developed by [Zheer Kejlberg Al-Mashhadi](https://zheer.dk).*
