@@ -5,7 +5,8 @@ Zheer Kejlberg Al-Mashhadi
 - [plotsurv](#plotsurv)
   - [Installation](#installation)
   - [Background](#background)
-    - [Survival analysis in a nutshell](#survival-analysis-in-a-nutshell)
+    - [Survival analysis in a
+      nutshell](#survival-analysis-in-a-nutshell)
     - [Competing risks](#competing-risks)
   - [Quick start](#quick-start)
     - [Set up example data](#set-up-example-data)
@@ -28,18 +29,28 @@ Zheer Kejlberg Al-Mashhadi
   - [Dependencies](#dependencies)
   - [License](#license)
 
+``` r
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "90%",
+  dpi = 150
+)
+set.seed(42)
+```
+
 # plotsurv
 
 > **Create publication-ready survival and cumulative incidence plots in
 > R**
 
-`plotsurv` is an R package that wraps the powerful
-`survival::survfit()` model object and produces polished `ggplot2`-based
-plots of Kaplan-Meier survival curves and Aalen-Johansen cumulative
-incidence functions (CIFs). It is especially suited for competing-risk
-analyses, where multiple event types can be overlaid on the same plot
-with optional confidence bands, censoring tick marks, and an at-risk
-table.
+`plotsurv` is an R package that wraps the powerful `survival::survfit()`
+model object and produces polished `ggplot2`-based plots of Kaplan-Meier
+survival curves and Aalen-Johansen cumulative incidence functions
+(CIFs). It is especially suited for competing-risk analyses, where
+multiple event types can be overlaid on the same plot with optional
+confidence bands, censoring tick marks, and an at-risk table.
 
 <br>
 
@@ -48,9 +59,9 @@ table.
 ## Installation
 
 ``` r
-# Install from GitHub (requires devtools)
-install.packages("devtools")
-devtools::install_github("zheer-kejlberg/plotsurv")
+# Install from GitHub (requires pak)
+install.packages("pak")
+pak::pak("zheer-kejlberg/plotsurv")
 library(plotsurv)
 ```
 
@@ -96,7 +107,7 @@ library(survival)
 library(plotsurv)
 
 set.seed(42)
-n <- 500
+n <- 5000
 
 # Simulate a dataset with two competing events and two groups
 tte_data <- data.frame(
@@ -117,7 +128,7 @@ tte_data$status <- with(tte_data, factor(
 
 ``` r
 # Fit the Aalen-Johansen model (competing risks)
-fit <- survfit(Surv(time, status) ~ group, data = tte_data)
+fit <- survival::survfit(Surv(time, status) ~ group, data = tte_data)
 ```
 
 <br>
@@ -134,9 +145,17 @@ curve is also shown (`include_surv = TRUE`).
 
 ``` r
 plotsurv(fit)
+#> Warning: Removed 1 row containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
+#> Warning: Removed 4 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
+#> Warning: Removed 10 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
 ```
 
-> *Produces a plot with CIF curves for "Event 1" and "Event 2" plus the
+<img src="man/figures/README-ex1-1.png" alt="" width="90%" />
+
+> *Produces a plot with CIF curves for “Event 1” and “Event 2” plus the
 > overall KM survival curve for each of the two groups — six lines in
 > total.*
 
@@ -151,7 +170,13 @@ cause-specific CIFs.
 
 ``` r
 plotsurv(fit, include_surv = FALSE)
+#> Warning: Removed 4 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
+#> Warning: Removed 10 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
 ```
+
+<img src="man/figures/README-ex2-1.png" alt="" width="90%" />
 
 <br>
 
@@ -163,12 +188,13 @@ Confidence bands are shown by default (`conf.int = TRUE`). Set it to
 `FALSE` to remove them.
 
 ``` r
-# With confidence bands (default)
-plotsurv(fit, include_surv = FALSE, conf.int = TRUE)
-
 # Without confidence bands
 plotsurv(fit, include_surv = FALSE, conf.int = FALSE)
+#> Ignoring unknown labels:
+#> • fill : "Group and event type"
 ```
+
+<img src="man/figures/README-ex3-1.png" alt="" width="90%" />
 
 <br>
 
@@ -187,7 +213,13 @@ plotsurv(
   risk.table   = TRUE,
   x.breaks     = 6
 )
+#> Warning: Removed 4 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
+#> Warning: Removed 10 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
 ```
+
+<img src="man/figures/README-ex4-1.png" alt="" width="90%" />
 
 > *The risk table is automatically aligned with the x-axis of the main
 > plot.*
@@ -209,14 +241,11 @@ plotsurv(
   include_surv  = FALSE,
   display_event = "Event 1"
 )
-
-# Show both competing events but hide the survival curve
-plotsurv(
-  fit,
-  include_surv  = FALSE,
-  display_event = c("Event 1", "Event 2")
-)
+#> Warning: Removed 4 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
 ```
+
+<img src="man/figures/README-ex5-1.png" alt="" width="90%" />
 
 <br>
 
@@ -232,11 +261,15 @@ plotsurv(
   include_surv = FALSE,
   conf.int     = FALSE,
   title        = "Competing risks in a simulated trial",
-  subtitle     = "500 participants randomised 1:1",
+  subtitle     = "5000 participants randomised 1:1",
   x_lab        = "Follow-up time (months)",
   y_lab        = "Cumulative incidence"
 )
+#> Ignoring unknown labels:
+#> • fill : "Group and event type"
 ```
+
+<img src="man/figures/README-ex6a-1.png" alt="" width="90%" />
 
 #### 6b · Custom legend labels
 
@@ -257,7 +290,13 @@ plotsurv(
     "Treated – Event 1", "Treated – Event 2"
   )
 )
+#> Warning: Removed 4 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
+#> Warning: Removed 10 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
 ```
+
+<img src="man/figures/README-ex6b-1.png" alt="" width="90%" />
 
 > **Tip:** When `color_lab`, `fill_lab`, and `line_lab` are all set to
 > the same string, ggplot2 merges them into a single combined legend.
@@ -279,7 +318,13 @@ plotsurv(
   ),
   colors = c("#3A488A", "#8CD3C4", "#BD5630", "#F2A65A")
 )
+#> Warning: Removed 4 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
+#> Warning: Removed 10 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
 ```
+
+<img src="man/figures/README-ex6c-1.png" alt="" width="90%" />
 
 #### 6d · Custom line types
 
@@ -295,7 +340,11 @@ plotsurv(
   group_labels  = c("Control", "Treated"),
   linetypes     = c("solid", "dashed")
 )
+#> Warning: Removed 4 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
 ```
+
+<img src="man/figures/README-ex6d-1.png" alt="" width="90%" />
 
 <br>
 
@@ -314,7 +363,13 @@ plotsurv(
   ticksize     = 5,      # default: 3
   tickalpha    = 0.6     # default: 0.8; lower = more transparent
 )
+#> Warning: Removed 4 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
+#> Warning: Removed 10 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
 ```
+
+<img src="man/figures/README-ex7-1.png" alt="" width="90%" />
 
 <br>
 
@@ -330,9 +385,16 @@ override them:
 plotsurv(
   fit,
   include_surv  = FALSE,
+  risk.table = TRUE,
   strata_labels = c("Placebo arm", "Active treatment arm")
 )
+#> Warning: Removed 4 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
+#> Warning: Removed 10 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
 ```
+
+<img src="man/figures/README-ex8-1.png" alt="" width="90%" />
 
 <br>
 
@@ -366,7 +428,13 @@ plotsurv(
   ),
   colors = c("#3A488A", "#8CD3C4", "#BD5630", "#F2A65A")
 )
+#> Warning: Removed 4 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
+#> Warning: Removed 10 rows containing missing values or values outside the scale range
+#> (`geom_ribbon()`).
 ```
+
+<img src="man/figures/README-ex9-1.png" alt="" width="90%" />
 
 <br>
 
@@ -375,7 +443,7 @@ plotsurv(
 ## Parameter reference
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+|----|----|----|----|
 | `survfit_obj` | `survfit` | — | **Required.** The output of `survival::survfit()`. |
 | `include_surv` | logical | `TRUE` | Whether to overlay the Kaplan-Meier survival curve S(t). |
 | `conf.int` | logical | `TRUE` | Whether to draw confidence bands around each curve. |
@@ -406,8 +474,8 @@ plotsurv(
 ## Notes on `display_event`
 
 - The *censoring state* (the lowest-numbered factor level in
-  `factor(eventtype)`) is stored internally by `survfit` as `"(s0)"`.
-  It should **not** be passed to `display_event`.
+  `factor(eventtype)`) is stored internally by `survfit` as `"(s0)"`. It
+  should **not** be passed to `display_event`.
 - By default (`display_event = "all"`), the function shows **all** event
   states including `"(s0)"` (the survival curve), unless
   `include_surv = FALSE`.
@@ -423,12 +491,12 @@ plotsurv(
 
 `plotsurv` is deliberately lightweight:
 
-| Package | Role |
-|---------|------|
-| `ggplot2` | Core plotting engine |
+| Package     | Role                                       |
+|-------------|--------------------------------------------|
+| `ggplot2`   | Core plotting engine                       |
 | `patchwork` | Combining the main plot and the risk table |
-| `dplyr` | Data manipulation |
-| `tidyr` | Data reshaping |
+| `dplyr`     | Data manipulation                          |
+| `tidyr`     | Data reshaping                             |
 
 <br>
 
@@ -442,5 +510,4 @@ GPL (≥ 3) — see `LICENSE.md`.
 
 ------------------------------------------------------------------------
 
-*Package developed by [Zheer Kejlberg
-Al-Mashhadi](https://zheer.dk).*
+*Package developed by [Zheer Kejlberg Al-Mashhadi](https://zheer.dk).*

@@ -2,12 +2,12 @@
 title: "plotsurv"
 author: "Zheer Kejlberg Al-Mashhadi"
 output:
-  github_document:
+  rmarkdown::github_document:
     toc: true
     toc_depth: 3
 ---
 
-```{r setup, include=FALSE}
+```{r setup}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -31,9 +31,9 @@ set.seed(42)
 ## Installation
 
 ```{r install, eval=FALSE}
-# Install from GitHub (requires devtools)
-install.packages("devtools")
-devtools::install_github("zheer-kejlberg/plotsurv")
+# Install from GitHub (requires pak)
+install.packages("pak")
+pak::pak("zheer-kejlberg/plotsurv")
 library(plotsurv)
 ```
 
@@ -61,12 +61,12 @@ When subjects can experience more than one type of event (e.g., death from cance
 
 ### Set up example data
 
-```{r data_setup, eval=FALSE}
+```{r data_setup}
 library(survival)
 library(plotsurv)
 
 set.seed(42)
-n <- 500
+n <- 5000
 
 # Simulate a dataset with two competing events and two groups
 tte_data <- data.frame(
@@ -85,9 +85,9 @@ tte_data$status <- with(tte_data, factor(
 ))
 ```
 
-```{r survfit, eval=FALSE}
+```{r survfit}
 # Fit the Aalen-Johansen model (competing risks)
-fit <- survfit(Surv(time, status) ~ group, data = tte_data)
+fit <- survival::survfit(Surv(time, status) ~ group, data = tte_data)
 ```
 
 <br>
@@ -100,7 +100,7 @@ fit <- survfit(Surv(time, status) ~ group, data = tte_data)
 
 By default `plotsurv()` shows **all CIF curves** for every combination of strata × event type, overlaid on the same panel. The KM survival curve is also shown (`include_surv = TRUE`).
 
-```{r ex1, eval=FALSE}
+```{r ex1}
 plotsurv(fit)
 ```
 
@@ -114,7 +114,7 @@ plotsurv(fit)
 
 Set `include_surv = FALSE` to hide the survival curve and show only the cause-specific CIFs.
 
-```{r ex2, eval=FALSE}
+```{r ex2}
 plotsurv(fit, include_surv = FALSE)
 ```
 
@@ -126,10 +126,7 @@ plotsurv(fit, include_surv = FALSE)
 
 Confidence bands are shown by default (`conf.int = TRUE`). Set it to `FALSE` to remove them.
 
-```{r ex3, eval=FALSE}
-# With confidence bands (default)
-plotsurv(fit, include_surv = FALSE, conf.int = TRUE)
-
+```{r ex3}
 # Without confidence bands
 plotsurv(fit, include_surv = FALSE, conf.int = FALSE)
 ```
@@ -142,7 +139,7 @@ plotsurv(fit, include_surv = FALSE, conf.int = FALSE)
 
 Set `risk.table = TRUE` to attach a numbers-at-risk table below the plot. The table shows the at-risk count at each of the `x.breaks` time-points.
 
-```{r ex4, eval=FALSE}
+```{r ex4}
 plotsurv(
   fit,
   include_surv = FALSE,
@@ -161,19 +158,12 @@ plotsurv(
 
 Use `display_event` to restrict which event types are drawn. Pass a character vector containing the desired event-type label(s) as they appear in the `factor()` supplied to `Surv()`.
 
-```{r ex5, eval=FALSE}
+```{r ex5}
 # Show Event 1 only
 plotsurv(
   fit,
   include_surv  = FALSE,
   display_event = "Event 1"
-)
-
-# Show both competing events but hide the survival curve
-plotsurv(
-  fit,
-  include_surv  = FALSE,
-  display_event = c("Event 1", "Event 2")
 )
 ```
 
@@ -185,13 +175,13 @@ plotsurv(
 
 #### 6a · Custom title, subtitle, and axis labels
 
-```{r ex6a, eval=FALSE}
+```{r ex6a}
 plotsurv(
   fit,
   include_surv = FALSE,
   conf.int     = FALSE,
   title        = "Competing risks in a simulated trial",
-  subtitle     = "500 participants randomised 1:1",
+  subtitle     = "5000 participants randomised 1:1",
   x_lab        = "Follow-up time (months)",
   y_lab        = "Cumulative incidence"
 )
@@ -201,7 +191,7 @@ plotsurv(
 
 The `group_labels` argument renames the legend entries. Labels must be supplied in the order: group 1 × event 1, group 1 × event 2, …, group k × event m.
 
-```{r ex6b, eval=FALSE}
+```{r ex6b}
 plotsurv(
   fit,
   include_surv  = FALSE,
@@ -222,7 +212,7 @@ plotsurv(
 
 Pass a vector of hex color codes (or named R colors) to `colors`. Its length must equal the number of unique strata × event-type combinations being displayed.
 
-```{r ex6c, eval=FALSE}
+```{r ex6c}
 plotsurv(
   fit,
   include_surv  = FALSE,
@@ -239,7 +229,7 @@ plotsurv(
 
 Use `linetypes` to distinguish groups by line style (e.g., solid, dashed). Accepts any line-type accepted by `ggplot2::scale_linetype_manual()`.
 
-```{r ex6d, eval=FALSE}
+```{r ex6d}
 plotsurv(
   fit,
   include_surv  = FALSE,
@@ -257,7 +247,7 @@ plotsurv(
 
 Censoring tick marks are enabled by default (`ticks = TRUE`). You can control their size and transparency:
 
-```{r ex7, eval=FALSE}
+```{r ex7}
 plotsurv(
   fit,
   include_surv = FALSE,
@@ -275,10 +265,11 @@ plotsurv(
 
 By default, strata labels are taken directly from the `survfit` object (e.g., `group=Control`, `group=Treated`). Use `strata_labels` to override them:
 
-```{r ex8, eval=FALSE}
+```{r ex8}
 plotsurv(
   fit,
   include_surv  = FALSE,
+  risk.table = TRUE,
   strata_labels = c("Placebo arm", "Active treatment arm")
 )
 ```
@@ -291,7 +282,7 @@ plotsurv(
 
 Putting it all together:
 
-```{r ex9, eval=FALSE}
+```{r ex9}
 plotsurv(
   fit,
   include_surv  = FALSE,
