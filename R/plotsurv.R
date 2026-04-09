@@ -48,7 +48,8 @@
 #' @param color_lab (optional) Label for color-codes, defaults to "Group and event type" (if same as fill_lab and line_lab, one combined legend will apear)
 #' @param fill_lab (optional) Label for color-fills, defaults to "Group and event type" (if same as color_lab and line_lab, one combined legend will apear)
 #' @param line_lab (optional) Label for lines, defaults to "Group and event type" (if same as color_lab and fill_lab, one combined legend will apear)
-#' @param group_labels (optional) Labels for each subgroup (defaults to automated combination of RHS group and LHS event type), must be of same length as no. of groups
+#' @param group_labels (optional) Labels for each subgroup (defaults to automated combination of RHS group and LHS event type), must be of same length as no. of groups x event types
+#' @param groups.table (optional) Labels for each group in the at-risk table (if risk.table == TRUE); must be same length as number of groups
 #' @param colors (optional) Colors for each subgroup, must be of same length as no. of groups
 #' @param linetypes (optional) Linetypes for each subgroup, must be of same length as no. of groups
 #'
@@ -82,10 +83,12 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
                      subtitle = "", # Plot subtitle
                      x_lab = "Time", # X-axis label
                      y_lab = "Cumulative probability of event", # Y-axis label
+                     y_lab_table = "Numbers at risk",
                      color_lab = "Group and event type", # Label for colors
                      fill_lab = "Group and event type", # Label for fillings
                      line_lab = "Group and event type", # Label for linetypes
-                     group_labels = NULL, # Labels to rename each group
+                     group_labels = NULL, # Labels to rename each group x event type
+                     groups.table = NULL, # Labels to rename each group in at-risk table
                      colors = NULL, # Colors
                      linetypes = NULL) # Linetypes
 {
@@ -243,7 +246,7 @@ plotsurv <- function(survfit_obj, # the output of a call to survival::survfit()
         axis.text.y = element_text(size = 10, hjust = 1), # show strata labels
         plot.margin = margin(t = 0)
       ) +
-      labs(x = NULL, y = "Number at risk")
+      labs(x = NULL, y = y_lab_table)
 
 
     plot_obj <- plot_obj / p_tbl + plot_layout(heights = c(3,1))
